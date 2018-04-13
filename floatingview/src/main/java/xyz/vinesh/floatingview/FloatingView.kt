@@ -42,24 +42,21 @@ class FloatingView constructor(private val resIdOfView: Int,
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun peek(): FloatingView {
-        var shouldShow = true
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            shouldShow = Settings.canDrawOverlays(activity)
-        }
+        val shouldShow = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) Settings.canDrawOverlays(activity) else true
         if (shouldShow) {
             val layoutParams = WindowManager.LayoutParams(
                     this@FloatingView.width,
                     this@FloatingView.height,
                     xPos,
                     yPos,
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
                     else
-                        WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE xor
                             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                     PixelFormat.TRANSLUCENT
             )
-
             layoutParams.gravity = gravity
             windowManager.addView(view, layoutParams)
         }
