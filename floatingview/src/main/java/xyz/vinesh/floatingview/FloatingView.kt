@@ -5,6 +5,8 @@ import android.arch.lifecycle.LifecycleObserver
 import android.arch.lifecycle.OnLifecycleEvent
 import android.content.Context
 import android.graphics.PixelFormat
+import android.os.Build
+import android.provider.Settings
 import android.support.v7.app.AppCompatActivity
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -34,24 +36,33 @@ class FloatingView constructor(private val resIdOfView: Int,
         view.setOnClickListener {
             onClick?.invoke()
         }
+
         return this
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun peek(): FloatingView {
-        val layoutParams = WindowManager.LayoutParams(
-                this@FloatingView.width,
-                this@FloatingView.height,
-                xPos,
-                yPos,
-                WindowManager.LayoutParams.TYPE_TOAST,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-                PixelFormat.TRANSLUCENT
-        )
+        var shouldShow = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            shouldShow = Settings.canDrawOverlays(activity)
+        }
+        if (shouldShow) {
+            val layoutParams = WindowManager.LayoutParams(
+                    this@FloatingView.width,
+                    this@FloatingView.height,
+                    xPos,
+                    yPos,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                    else
+                        WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                            WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                    PixelFormat.TRANSLUCENT
+            )
 
-        layoutParams.gravity = gravity
-        windowManager.addView(view, layoutParams)
+            layoutParams.gravity = gravity
+            windowManager.addView(view, layoutParams)
+        }
         return this
     }
 
